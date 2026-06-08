@@ -6,10 +6,16 @@ import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-# SCRIPT_DIR is projects/autonomous-changelog, workspace root is two levels up
-WORKSPACE_ROOT = SCRIPT_DIR.parent.parent
-PROJECTS_PATH = WORKSPACE_ROOT / "PROJECTS.md"
+PROJECTS_PATH = SCRIPT_DIR / "PROJECTS.md"
 OUTPUT_PATH = SCRIPT_DIR / "index.html"
+
+def strip_paths(text: str) -> str:
+    """Strip workspace prefixes from file paths for cleaner display."""
+    # Strip full workspace paths: projects/tinyizer/src/... → src/...
+    text = re.sub(r'\bprojects/tinyizer/', '', text)
+    # Also strip absolute workspace paths if any
+    text = re.sub(r'/home/alma/\.nanobot/workspace/', '', text)
+    return text
 
 def parse_entries(text: str) -> list[dict]:
     """Parse tinyizer progress entries from PROJECTS.md."""
@@ -26,7 +32,7 @@ def parse_entries(text: str) -> list[dict]:
         # Match progress entries: "- 2026-06-XX ..."
         m = re.match(r"^\s*-\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})\s*[—–-]\s*(.+)$", line)
         if m:
-            entries.append({"date": m.group(1), "text": m.group(2).strip()})
+            entries.append({"date": m.group(1), "text": strip_paths(m.group(2).strip())})
     return entries
 
 def build_html(entries: list[dict]) -> str:

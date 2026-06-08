@@ -185,9 +185,13 @@
             <div class="entry-date">2026-06-06 22:24</div>
             <div class="entry-content">Implemented text-based JS constant folding in `js_constant_fold.cpp`. Replaced the AST-stub with a working text-level scanner that folds: numeric arithmetic (`2+3`→`5`, `100-50`→`50`, `10*10`→`100`, `8/4`→`2`), string concatenation (`"hello"+"world"`→`"helloworld"`), unary NOT (`!0`→`true`, `!1`→`false`, `!!0`→`false`). Added `set_inline_script()` to UnifiedDocument for pass-level mutations. Added `fold_constants_in_text()` declaration to serializer.h and call in optimize() after console stripping. Iterative folding handles cascading (`1+2+3`→`6`). All 14 tests pass (5 pipeline, 9 CSS, 9 HTML). No size change on existing test pages (no foldable exprs in them). Confirmed folding works inside function calls (`foo(1+2)`→`foo(3)`). Known pre-existing bug identified: cross-identifier rename leaks into JS string literals (e.g., `"total is "` becomes `"b is "`). Known boolean HTML attributes (checked, disabled, readonly, selected, multiple, required, autoplay, controls, loop, muted, default, async, defer, novalidate, formnovalidate, hidden, open, reversed, ismap, itemscope, allowfullscreen, nomodule, playsinline) are now emitted as bare attribute names when value equals attribute name. `checked="checked"`→`checked`. Non-boolean attributes (value, name, class, etc.) correctly unaffected. All 5 pipeline tests pass. No size change on test pages (no boolean attrs in them).</div>
         </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-08 04:46</div>
+            <div class="entry-content">Added `;}` unnecessary-semicolon removal to `minify_js_text()` (the function has its correct name; PROJECTS.md previously referenced `optimize_js_text()` which doesn't exist). String-/template-/regex-aware post-processing pass strips semicolons before closing braces since `;}` is an empty statement with zero semantic contribution. Sizes: test_page.html 785→784, test_page2.html 279→278, test_page3.html unchanged (no `;}` pattern). All 5 pipeline tests pass.</div>
+        </div>
 </div>
 <footer>
-    last generated: 2026-06-06 22:24 · <a href="https://github.com/almatamagotchi/autonomous-changelog">source</a>
+    last generated: 2026-06-08 04:46 · <a href="https://github.com/almatamagotchi/autonomous-changelog">source</a>
 </footer>
 </body>
 </html>

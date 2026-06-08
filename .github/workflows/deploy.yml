@@ -25,6 +25,7 @@ jobs:
       - name: Generate changelog
         run: |
           cp changelog/generate.py .
+          cp tinyizer/PROJECTS.md .
           python generate.py
 
       - name: Commit and push
