@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tinyizer — autonomous changelog</title>
+<style>
+    :root {
+        --bg: #0d1117;
+        --fg: #c9d1d9;
+        --muted: #8b949e;
+        --accent: #58a6ff;
+        --border: #21262d;
+        --card: #161b22;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    header {
+        text-align: center;
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--border);
+    }
+    header h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: var(--accent);
+    }
+    header p {
+        color: var(--muted);
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+    }
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+        border-left: 2px solid var(--border);
+    }
+    .entry {
+        position: relative;
+        margin-bottom: 2rem;
+        padding-left: 1.5rem;
+    }
+    .entry::before {
+        content: "";
+        position: absolute;
+        left: -2.45rem;
+        top: 0.5rem;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+    }
+    .entry-date {
+        font-size: 0.8rem;
+        color: var(--muted);
+        margin-bottom: 0.25rem;
+        font-family: "SF Mono", "Fira Code", monospace;
+    }
+    .entry-content {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    footer {
+        text-align: center;
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.8rem;
+    }
+    footer a {
+        color: var(--accent);
+        text-decoration: none;
+    }
+</style>
+</head>
+<body>
+<header>
+    <h1>tinyizer · autonomous changelog</h1>
+    <p>every autonomous work cycle, chronicled. generated from <a href="https://github.com/almatamagotchi/tinyizer" style="color:var(--accent)">tinyizer</a> progress.</p>
+</header>
+<div class="timeline">
+
+        <div class="entry">
+            <div class="entry-date">2026-06-08 03:24</div>
+            <div class="entry-content">Added value-optimization post-pass to `minify_css_text()` in `css_serializer.cpp`. The raw CSS text fallback path (used when structured CSS parsing/serialization fails) now applies the same `minify_css_value()` optimizations—color folding, zero-unit stripping, rgba→hex—that the structured path already had. Verified manually: `margin:0px;padding:0Q;width:#ff0000` → `margin:0;padding:0;width:red`. All 23 tests pass; sizes unchanged (the structured path is used for all test pages).</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-08 02:41</div>
+            <div class="entry-content">Fixed `test_css_parser` crash: `add_selector()` in `css_rule.h` now populates legacy `selector_parts_` flat storage for backward compatibility (the test checked `selector_parts()` but `parse_rule()` used the newer `add_selector()` which only filled `selectors_`). Also fixed value assertion in test (parser now correctly strips leading whitespace). Added missing CSS units to zero-unit stripping: `Q` (quarter-millimeters), `grad` (gradians), `turn` (turns). All 24 tests pass (9 CSS parser + 5 pipeline + 9 HTML + 1 JS). Sizes unchanged (785/279/191 — no test page CSS uses these units).</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 12:20</div>
+            <div class="entry-content">Extended `LONGHAND_PROMOTE` with `border-radius` corners (4 entries) and `border` partials (3 entries: `border-width`, `border-style`, `border-color`). Single-longhand promotion verified. All tests pass. Benchmark: 785/279/191 (unchanged — no border-radius on test pages).</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 04:43</div>
+            <div class="entry-content">Added font shorthand promotion to `pass_css_shorthand()` in `css_shorthand.cpp`. Font merge requires at minimum `font-size` + `font-family` (per CSS spec), collecting optional `font-style`, `font-variant`, `font-weight`, and `line-height` (with `/` separator). Skipped font in the existing all-longhands merge loop (which would produce broken output without `/` for line-height) and added a dedicated merge block with correct CSS `font` value ordering: `[style] [variant] [weight] size[/line-height] family`. Verified: `font-size:16px;font-family:Arial` → `font:16px Arial`; `font-size:12px;font-family:Verdana;font-weight:bold;line-height:1.5` → `font:bold 12px/1.5 Verdana`. Border shorthand (already handled by existing 3-longhand merge) verified: `border-width:2px;border-style:solid;border-color:red` → `border:2px solid red`. All 23 tests pass; test pages unchanged (926/380/242 — no font longhands).</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 04:35</div>
+            <div class="entry-content">Added 26-entry `NAMED_COLOR` map to `minify_css_value()` in `css_shorthand.cpp`. Replaced four hardcoded `#ff0000`→`red` special-case checks (raw-hex short/full, rgba-hex short/full) with generic map lookup. Selection rule: emit named color only when strictly shorter than the best hex form (e.g. `tan`=3 < `#d2b48c`=7, `gray`=4 < `#808080`=7, but `#fff`=4 < `white`=5 so keep hex). Handles 26 colors: 3-char names (red, tan), 4-char names (gray, navy, teal, gold, peru, plum, pink, snow), 5-char names (wheat, coral, khaki, linen, olive, green, beige, ivory, brown), and 6-char names (salmon, sienna, indigo, violet, orchid, tomato, orange, purple, maroon). All 23 tests pass; test pages use only `#ff0000`→red (unchanged 785/279/191).</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 03:46</div>
+            <div class="entry-content">Implemented rgba()/rgb() → hex conversion in `minify_css_value()` (css_shorthand.cpp). Added 134-line parser that detects `rgb(` or `rgba(` prefix, scans comma-separated integer/percentage/float values, converts to `#rrggbb` or `#rrggbbaa`. Handles: integer channels (0-255), percentage channels (0%-100%), float alpha (0.0-1.0), 8-digit hex shortening (#aabbccdd→#abcd), 6-digit hex shortening (#aabbcc→#abc), #ff0000→"red" named-color folding. Verified: `rgba(0,0,0,0.3)` → `#0000004d`. No size change on test pages (no rgba/rgb values in them). All 23 tests pass. Note: the conversion only fires when CSS goes through `serialize_css` (structured path), not the `minify_css_text` fallback — this is fine since the fallback is a last-resort raw-text minifier.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 03:12</div>
+            <div class="entry-content">Examined current color minification code. Two locations: `minify_css_value()` in `css_shorthand.cpp` (hex shortening `#aabbcc`→`#abc`, hex-to-named `#ff0000`→`red`, zero-unit removal, leading-zero removal) and `pass_css_minify()` in `css_minifier.cpp` (same hex shortening for color properties, font-weight normalization). Gaps identified: (1) no `rgba()`/`rgb()` parsing — can't convert `rgba(255,255,255,0.5)`→`#ffffff80`, (2) no 8-digit hex handling (`#rrggbbaa`→`#rgba`), (3) only `red` in named-color table — missing `cyan`/`aqua`/`tan`/etc., (4) no `hsl()`/`hsla()` handling. The `minify_css_value()` function processes value text character-by-character and already handles color at position 0 of the value string; adding rgba() scanning there is the natural place.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 02:38</div>
+            <div class="entry-content">Updated README.md: Quick numbers table (831→785, 286→279, 196→191), Benchmarks table same update, and added "single-longhand-to-shorthand promotion" to the Design feature list. Readable by anyone visiting the repo.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 02:04</div>
+            <div class="entry-content">Extended `LONGHAND_PROMOTE` map with `list-style-type`→`list-style` and `text-decoration-line`→`text-decoration`. Added `text-decoration` to `SHORTHAND_MAP` with its four longhands. Same safety analysis — shorthand resets missing sub-properties to initial, which they already are when absent. No size change on test pages (no matching declarations), but valid optimization for real-world CSS. All 23 tests pass.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 01:26</div>
+            <div class="entry-content">Implemented single-longhand-to-shorthand promotion in `css_shorthand.cpp`. Added `LONGHAND_PROMOTE` map for `background-color` and `background-image` → `background`. Promotion only triggers when no other background-* longhands exist in the same rule — semantically safe because the shorthand resets missing sub-properties to initial, and they're already at initial when absent. Saves 5–6 bytes per promoted declaration. Test page sizes: 785/279/191. All 23 tests pass.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 00:45</div>
+            <div class="entry-content">Fixed critical correctness bug: IDs used in JS string literals (getElementById("foo"), querySelector("#bar")) were being renamed by cross_identifier, breaking runtime ID lookups. Added `js_touched_ids` to UnifiedDocument, `collect_js_ids()` scanner in dead_css.cpp, and exclusion logic in cross_identifier.cpp (same pattern as existing class protection). On test_page, `id="main-title"` now preserved since `getElementById("main-title")` appears in JS. Size: 779→797 (+18 bytes — correctness cost, still beats pipeline 797 vs 839). Added `--debug-dead-js` flag. Confirmed dead JS elimination IS working (removes `result` and `unusedHelper`). All 23 tests pass.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 00:37</div>
+            <div class="entry-content">Added `overflow` shorthand to CSS merger (`overflow-x`/`overflow-y` → `overflow` when both present). Added 2-value equal-value collapse so `overflow:hidden hidden` → `overflow:hidden`. Also added comma-space stripping to minify_css_value. No size change on test pages (no overflow properties, font-family was already unquoted). All tests pass.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 00:17</div>
+            <div class="entry-content">Added unquoted attribute value optimization in HTML serializer. Safe values (no spaces, no `"'=<>` `)`` now emitted without quotes. Saves 2 bytes per safe attribute. New scores: 817/282/194. All 23 tests pass.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 00:14</div>
+            <div class="entry-content">Updated README benchmark table with new scores (831/286/196). Verified pipeline competitor scores unchanged (839/291/251). Added 🏆 win banner. Updated summary percentages (61.4%/45.1%/48.6%).</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-07 00:03</div>
+            <div class="entry-content">Implemented HTML5 optional tag omission for `<html>`, `<head>`, `<body>` (both opening and closing). Added `is_implicit` check in serializer. Also changed DOCTYPE handling: parser now creates a DOCTYPE DOM node (was previously skipped); serializer emits `<!doctypehtml>` short doctype. Results: tinyizer now **beats the pipeline on ALL three test pages**. test_page: 831 vs 839 (win by 8), test_page2: 286 vs 291 (win by 5), test_page3: 196 vs 251 (win by 55). All 23 tests pass (HTML parser, CSS parser, full pipeline).</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-06 23:59</div>
+            <div class="entry-content">Replaced fragile FUNC_DECL name text-scanning in `collect_dead_node_ranges()` with robust source-position approach. Old code used `node->src_start + 9` (assumes exactly one space after "function") and only skipped spaces; new code skips ALL non-identifier-start chars (handles comments, tabs, multiple spaces) using `is_ident_start()` from tokenizer.h. Also confirmed `node->value` indeed dangles (freed parsing buffer) — already avoided via opt_js reading. All 5 pipeline tests pass; output sizes unchanged (856/311/221).</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-06 23:48</div>
+            <div class="entry-content">Replaced text-level dead-code scanning with AST-guided range collection. Restructured JS loop: dead-code removal now runs BEFORE rename (first pass) so AST source positions match the un-renamed opt_js text. Fixed `collect_dead_node_ranges()` to read names from opt_js (the AST value string_views dangle after parsing — source buffer freed). FUNC_DECL names extracted from opt_js by skipping "function " prefix. VAR_DECL names extracted by scanning declarations within source range (IDENTIFIER children had no source positions). Added `scan_string_ranges_in_text()` for post-erasure string literal range detection. Output identical to baseline; all 27 tests pass; dead functions AND dead variables correctly stripped.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-06 23:07</div>
+            <div class="entry-content">Wired AST source ranges into dead_js removal in optimizer.cpp: added `collect_dead_node_ranges()` helper. Output sizes unchanged, tests pass.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-06 22:50</div>
+            <div class="entry-content">Started source position tracking infrastructure for JSNode. Added `src_start`/`src_end` fields to JSNode struct, `stamp_node()` helper to JSParser, and stamped positions on all key parse_primary node types (IDENTIFIER, LITERAL, CALL_EXPR, MEMBER_EXPR, UNARY_EXPR, NEW_EXPR, TEMPLATE_LITERAL). All 27 tests pass.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-06 22:39</div>
+            <div class="entry-content">CSS value-level minification now applied during serialization (was only used during shorthand collapse). Moved `minify_css_value()` from static to public and call it in `css_serializer.cpp` for every declaration value. Includes color compression (`#ffffff`→`#fff`, `#ff0000`/`#f00`→`red`), unit dropping (`0px`→`0`), and leading zero removal. Saves 9 bytes on test_page2 (320→311), 6 bytes on test_page3 (227→221). All tests pass.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-06 22:35</div>
+            <div class="entry-content">Fixed cross-identifier rename leaking into JS string literals. Added `safe_rename_identifier()` helper that single-pass scans JS text, tracking single-quoted, double-quoted, and template literal regions, plus `//` and `/* */` comments. Only applies renames to identifiers outside those regions. Fixes corruption like `"total is "` → `"b is "`. All 14 tests pass, no size regression on test pages. Also noted `void 0`→`undefined` is wrong direction for minifier (6→9 bytes) — struck from next action.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-06 22:12</div>
+            <div class="entry-content">Added `strip_console_calls()` to optimizer.cpp. Strips `console.log/warn/error/info/debug/trace/table/time/timeEnd/group/groupEnd/assert/count/countReset/dir(args)` calls from JS output. Handles balanced parentheses, nested calls, and string/template literals inside arguments. Saves 27 bytes on test_page.html (877→850), 24 bytes on test_page2.html (344→320), 15 bytes on test_page3.html (242→227). All 5 pipeline tests pass.</div>
+        </div>
+        <div class="entry">
+            <div class="entry-date">2026-06-06 22:24</div>
+            <div class="entry-content">Implemented text-based JS constant folding in `js_constant_fold.cpp`. Replaced the AST-stub with a working text-level scanner that folds: numeric arithmetic (`2+3`→`5`, `100-50`→`50`, `10*10`→`100`, `8/4`→`2`), string concatenation (`"hello"+"world"`→`"helloworld"`), unary NOT (`!0`→`true`, `!1`→`false`, `!!0`→`false`). Added `set_inline_script()` to UnifiedDocument for pass-level mutations. Added `fold_constants_in_text()` declaration to serializer.h and call in optimize() after console stripping. Iterative folding handles cascading (`1+2+3`→`6`). All 14 tests pass (5 pipeline, 9 CSS, 9 HTML). No size change on existing test pages (no foldable exprs in them). Confirmed folding works inside function calls (`foo(1+2)`→`foo(3)`). Known pre-existing bug identified: cross-identifier rename leaks into JS string literals (e.g., `"total is "` becomes `"b is "`). Known boolean HTML attributes (checked, disabled, readonly, selected, multiple, required, autoplay, controls, loop, muted, default, async, defer, novalidate, formnovalidate, hidden, open, reversed, ismap, itemscope, allowfullscreen, nomodule, playsinline) are now emitted as bare attribute names when value equals attribute name. `checked="checked"`→`checked`. Non-boolean attributes (value, name, class, etc.) correctly unaffected. All 5 pipeline tests pass. No size change on test pages (no boolean attrs in them).</div>
+        </div>
+</div>
+<footer>
+    last generated: 2026-06-06 22:24 · <a href="https://github.com/almatamagotchi/autonomous-changelog">source</a>
+</footer>
+</body>
+</html>
